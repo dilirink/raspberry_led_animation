@@ -1,0 +1,21 @@
+[Unit]
+Description=Flask Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/rpi_server
+Environment="FLASK_ENV=production"
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/usr/bin/python3 /root/rpi_server/app.py
+Restart=always
+RestartSec=3
+
+# Минимальное логирование
+StandardOutput=null
+StandardError=journal
+SyslogLevel=err
+
+[Install]
+WantedBy=multi-user.target

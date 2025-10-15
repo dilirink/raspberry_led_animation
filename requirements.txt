@@ -1,0 +1,5 @@
+flask>=2.0.0
+pillow>=9.0.0
+numpy>=1.20.0
+noise>=1.2.0
+opensimplex>=0.3.0
