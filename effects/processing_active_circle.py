@@ -162,7 +162,7 @@ def generate_frame():
     global objs, frame_count
     
     # Создание изображения
-    image = Image.new('RGB', (WIDTH, HEIGHT), (255, 255, 255))
+    image = Image.new('RGB', (WIDTH, HEIGHT), (0, 0, 0))
     draw = ImageDraw.Draw(image)
     
     # Отрисовка всех объектов
