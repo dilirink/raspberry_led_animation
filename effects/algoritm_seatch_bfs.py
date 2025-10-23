@@ -2,7 +2,13 @@
 # ОПИСАНИЕ: Гарантия - всегда находит кратчайший путь
 import time
 import random
-from  rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageDraw
 from collections import deque
 

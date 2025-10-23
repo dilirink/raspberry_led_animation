@@ -1,0 +1,97 @@
+# Конфигурация LED эффектов
+# Каждый эффект содержит:
+# - file: имя файла эффекта (без расширения .py)
+# - name: отображаемое название эффекта
+# - description: описание эффекта
+# - image: путь к картинке для кнопки эффекта (относительно папки templates/images)
+
+effects:
+  - file: algoritm_seatch_bfs
+    name: алгоритм поиска BFS
+    description: Гарантия - всегда находит кратчайший путь
+    image: bfs.png
+
+  - file: Helix
+    name: animation
+    description: 8 эффектов
+    image: helix.png
+
+  - file: processing_caleydoskop
+    name: Калейдоскоп
+    description: Психоделический калейдоскопический эффект с плавными цветовыми переходами
+    image: kaleidoscope.png
+
+  - file: peresechenie
+    name: Пересечение фигур
+    description: Движущиеся геометрические фигуры с подсветкой точек пересечения
+    image: intersection.png
+
+  - file: processing_figure2
+    name: Геометрия 2
+    description: Продвинутые геометрические паттерны с вращением, движением и трансформацией
+    image: geometry2.png
+
+  - file: processing_ferverk
+    name: Фейерверк
+    description: Красочный анимированный фейерверк с частицами и искрами
+    image: firework.png
+
+  - file: processing_figure1
+    name: Геометрия движения
+    description: Анимированные геометрические фигуры с плавными трансформациями и цветовыми переходами
+    image: geometry1.png
+
+  - file: pixel
+    name: пиксельная матрица
+    description: сменяймые цвета
+    image: pixel.png
+
+  - file: processing_noise_gradiend
+    name: Шумовой градиент
+    description: Органичные цветные блобы на основе Perlin noise с плавными RGB градиентами
+    image: noise_gradient.png
+
+  - file: processing_active_circle
+    name: Активные фигуры
+    description: Динамичные геометрические фигуры с плавными анимациями и трансформациями
+    image: active_circle.png
+
+  - file: processing_random_pixel
+    name: Случайные пиксели
+    description: Динамичная сетка из случайных цветных прямоугольников с плавной анимацией
+    image: random_pixel.png
+
+  - file: processing_squad_beast
+    name: Квадратный зверь
+    description: Динамические анимированные прямоугольники с плавными трансформациями
+    image: squad_beast.png
+
+  - file: processing_squad_transformation
+    name: Трансформация квадратов
+    description: Рекурсивное деление прямоугольников с плавными переходами между состояниями
+    image: squad_transformation.png
+
+  - file: processing_wave
+    name: Волны
+    description: Плавные волнообразные линии на основе Perlin noise
+    image: wave.png
+
+  - file: processing_gravity_circly
+    name: Гравитация кругов
+    description: Движущиеся цветные круги с взаимодействием и соединительными линиями
+    image: gravity_circle.png
+
+  - file: rgb_stats
+    name: Звездопад
+    description: звездопад
+    image: stars.png
+
+  - file: sin_ascii
+    name: синусойдный текст_:р
+    description: Анимированные текста
+    image: sin_text.png
+
+  - file: white_dot_transformation
+    name: Трансформация точек
+    description: Морфинг белых точек между различными геометрическими паттернами
+    image: dot_transformation.png

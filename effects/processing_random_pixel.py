@@ -4,8 +4,13 @@
 # https://openprocessing.org/sketch/2682890
 import time
 import math
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
-from  rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageDraw
 from opensimplex import OpenSimplex
 import numpy as np
@@ -32,7 +37,7 @@ matrix = RGBMatrix(options=options)
 COLORS = [
     "#f71735", "#f293af", "#fdb50e", "#2abde4", "#f4f0e6", "#2864b8"
 ]
-BACKGROUND = "#272727"
+BACKGROUND = "#000000"
 
 WIDTH, HEIGHT = 64, 64
 CENTER_X, CENTER_Y = WIDTH // 2, HEIGHT // 2

@@ -1,7 +1,12 @@
 # НАЗВАНИЕ: Звездопад
 # ОПИСАНИЕ: звездопад
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
-from  rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from time import sleep
 import random
 import colorsys

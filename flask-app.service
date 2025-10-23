@@ -6,16 +6,15 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/rpi_server
-Environment="FLASK_ENV=production"
 Environment="PYTHONUNBUFFERED=1"
-ExecStart=/usr/bin/python3 /root/rpi_server/app.py
+ExecStart=/usr/local/bin/gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 app:app
 Restart=always
 RestartSec=3
 
-# Минимальное логирование
-StandardOutput=null
+# Логирование
+StandardOutput=journal
 StandardError=journal
-SyslogLevel=err
+SyslogLevel=warning
 
 [Install]
 WantedBy=multi-user.target

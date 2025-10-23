@@ -3,16 +3,18 @@
 # НАЗВАНИЕ: animation
 # ОПИСАНИЕ: 8 эффектов
 # https://openprocessing.org/sketch/2421742
-"""
-LED Matrix Animations для панели 64x64
-Портированные JavaScript анимации в Python
-https://codepen.io/filipz/pen/KwdzwrK
-"""
+
 
 import time
 import math
 import random
-from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageDraw
 
 # ==================== НАСТРОЙКИ ====================
@@ -662,11 +664,18 @@ def main():
     
     # Выбор начальной анимации
     if ANIMATION_MODE == 8:
-        current_animation = 0
+        # Создаем случайный порядок анимаций
+        animation_order = list(range(len(animations)))
+        random.shuffle(animation_order)
+        current_animation_index = 0
+        current_animation = animation_order[current_animation_index]
         auto_mode = True
-        print("Режим автопереключения анимаций")
+        print("Режим автопереключения анимаций (случайный порядок)")
+        print(f"Порядок воспроизведения: {[animation_names[i] for i in animation_order]}")
     else:
         current_animation = ANIMATION_MODE
+        current_animation_index = 0
+        animation_order = None
         auto_mode = False
         print(f"Запуск анимации: {animation_names[current_animation]}")
     
@@ -683,7 +692,8 @@ def main():
             
             # Автопереключение анимаций
             if auto_mode and (current_time - last_switch_time) >= AUTO_SWITCH_TIME:
-                current_animation = (current_animation + 1) % len(animations)
+                current_animation_index = (current_animation_index + 1) % len(animations)
+                current_animation = animation_order[current_animation_index]
                 last_switch_time = current_time
                 print(f"Переключение на: {animation_names[current_animation]}")
             

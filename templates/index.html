@@ -13,15 +13,33 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh;
             padding: 20px;
-            color: #333;
+            color: #e0e0e0;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         header {
@@ -34,23 +52,36 @@
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 8px rgba(102, 126, 234, 0.3));
         }
 
         .subtitle {
             font-size: 1.2rem;
-            opacity: 0.9;
+            opacity: 0.8;
+            color: #b8b8d1;
         }
 
         .status-bar {
-            background: white;
+            background: rgba(30, 30, 50, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.2);
             border-radius: 15px;
             padding: 20px 30px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.3s;
+        }
+
+        .status-bar:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
         }
 
         .status-info {
@@ -63,26 +94,36 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #e0e0e0;
-            animation: pulse 2s infinite;
+            background: #4a4a6a;
+            position: relative;
+            box-shadow: 0 0 10px rgba(74, 74, 106, 0.5);
         }
 
         .status-indicator.running {
             background: #4caf50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+            animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
         }
 
         .status-text {
             font-size: 1.1rem;
             font-weight: 500;
+            color: #e0e0e0;
         }
 
         .stop-btn {
-            background: #f44336;
+            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
             color: white;
             border: none;
             padding: 12px 30px;
@@ -91,35 +132,46 @@
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 600;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
         }
 
         .stop-btn:hover:not(:disabled) {
-            background: #d32f2f;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.5);
+        }
+
+        .stop-btn:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .stop-btn:disabled {
-            background: #ccc;
+            background: linear-gradient(135deg, #4a4a6a 0%, #3a3a5a 100%);
             cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.5;
         }
 
         .effects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             gap: 25px;
             margin-bottom: 30px;
         }
 
         .effect-card {
-            background: white;
+            background: rgba(30, 30, 50, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.2);
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s;
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .effect-card::before {
@@ -128,15 +180,16 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
             transform: scaleX(0);
             transition: transform 0.3s;
         }
 
         .effect-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
         }
 
         .effect-card:hover::before {
@@ -145,82 +198,154 @@
 
         .effect-card.active {
             border: 2px solid #4caf50;
-            background: #f1f8f4;
+            background: rgba(76, 175, 80, 0.1);
+            box-shadow: 0 8px 32px rgba(76, 175, 80, 0.3);
         }
 
         .effect-card.active::before {
             transform: scaleX(1);
             background: #4caf50;
+            height: 3px;
+        }
+
+        .effect-image {
+            width: 150px;
+            height: 150px;
+            min-width: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .effect-image.placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8a8aa8;
+            font-size: 3rem;
+        }
+
+        .effect-main {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .effect-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .effect-info {
+            flex: 1;
+            min-width: 0;
         }
 
         .effect-name {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 10px;
-            color: #333;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .effect-description {
-            color: #666;
+            color: #b8b8d1;
             line-height: 1.6;
-            margin-bottom: 15px;
-            min-height: 50px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .effect-filename {
             font-size: 0.85rem;
-            color: #999;
+            color: #8a8aa8;
             font-family: 'Courier New', monospace;
-            background: #f5f5f5;
+            background: rgba(102, 126, 234, 0.1);
             padding: 5px 10px;
             border-radius: 5px;
             display: inline-block;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            align-self: flex-start;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .active-badge {
             position: absolute;
             top: 15px;
             right: 15px;
-            background: #4caf50;
+            background: linear-gradient(135deg, #4caf50, #45a049);
             color: white;
             padding: 5px 15px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
+            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.4);
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 2px 10px rgba(76, 175, 80, 0.4);
+            }
+            50% {
+                box-shadow: 0 2px 20px rgba(76, 175, 80, 0.6);
+            }
         }
 
         .loading {
             text-align: center;
             padding: 50px;
             font-size: 1.2rem;
-            color: white;
+            color: #b8b8d1;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
         }
 
         .no-effects {
             text-align: center;
             padding: 50px;
-            background: white;
+            background: rgba(30, 30, 50, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.2);
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .no-effects h2 {
-            color: #666;
+            color: #b8b8d1;
             margin-bottom: 10px;
         }
 
         .no-effects p {
-            color: #999;
+            color: #8a8aa8;
         }
 
         .notification {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: white;
+            background: rgba(30, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
             padding: 20px 30px;
             border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
             transform: translateX(400px);
             transition: transform 0.3s;
             z-index: 1000;
@@ -232,28 +357,69 @@
         }
 
         .notification.success {
-            border-left: 5px solid #4caf50;
+            border-left: 4px solid #4caf50;
+            box-shadow: 0 8px 32px rgba(76, 175, 80, 0.3);
         }
 
         .notification.error {
-            border-left: 5px solid #f44336;
+            border-left: 4px solid #f44336;
+            box-shadow: 0 8px 32px rgba(244, 67, 54, 0.3);
         }
 
         .notification-title {
             font-weight: 700;
             margin-bottom: 5px;
+            color: #ffffff;
         }
 
         .notification-message {
-            color: #666;
+            color: #b8b8d1;
             font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .effects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .effect-card {
+                padding: 15px;
+                gap: 10px;
+            }
+
+            .effect-main {
+                gap: 15px;
+            }
+
+            .effect-image {
+                width: 100px;
+                height: 100px;
+                min-width: 100px;
+            }
+
+            .effect-name {
+                font-size: 1.2rem;
+            }
+
+            .effect-description {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>✨ LED Effects Control</h1>
+            <h1>LED Effects Control</h1>
             <p class="subtitle">Управление световыми эффектами</p>
         </header>
 
@@ -266,7 +432,7 @@
         </div>
 
         <div id="effectsContainer" class="loading">
-            Загрузка эффектов...
+            Загрузка эффектов
         </div>
     </div>
 
@@ -336,8 +502,16 @@
                 container.innerHTML = effects.map(effect => `
                     <div class="effect-card" data-effect="${effect.filename}" onclick="startEffect('${effect.filename}')">
                         ${currentEffect === effect.filename ? '<div class="active-badge">Активен</div>' : ''}
-                        <div class="effect-name">${effect.name}</div>
-                        <div class="effect-description">${effect.description || 'Описание отсутствует'}</div>
+                        <div class="effect-main">
+                            ${effect.image ?
+                                `<img src="/images/${effect.image}" alt="${effect.name}" class="effect-image" onerror="this.outerHTML='<div class=\\'effect-image placeholder\\'>🎨</div>'">` :
+                                '<div class="effect-image placeholder">🎨</div>'
+                            }
+                            <div class="effect-content">
+                                <div class="effect-name">${effect.name}</div>
+                                <div class="effect-description">${effect.description || 'Описание отсутствует'}</div>
+                            </div>
+                        </div>
                         <div class="effect-filename">${effect.filename}.py</div>
                     </div>
                 `).join('');

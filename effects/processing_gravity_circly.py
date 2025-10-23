@@ -4,8 +4,13 @@
 # https://openprocessing.org/sketch/2642304
 import time
 import random
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
-from  rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageDraw
 
 import math
@@ -36,7 +41,7 @@ FPS = 30                    # Кадров в секунду (10-30)
 
 # Цветовая палитра
 COLORS = ['#08804e', '#f0bd15', '#d10406', '#fd7800', '#2abde4', '#f3f7fa', '#574689']
-BACKGROUND_COLOR = '#212121'
+BACKGROUND_COLOR = "#000000"
 
 # ==================== КОНЕЦ БЛОКА НАСТРОЕК ====================
 

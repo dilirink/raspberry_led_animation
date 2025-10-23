@@ -5,8 +5,13 @@
 import time
 import math
 import random
-from  rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageDraw
 
 
@@ -141,7 +146,7 @@ def setup():
 
 def generate_frame():
     """Генерация одного кадра анимации"""
-    image = Image.new("RGB", (WIDTH, HEIGHT), (255, 255, 255))
+    image = Image.new("RGB", (WIDTH, HEIGHT), (10, 10, 10))
     draw = ImageDraw.Draw(image)
     
     for obj in objs:

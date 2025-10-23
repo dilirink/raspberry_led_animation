@@ -3,8 +3,13 @@
 # ОПИСАНИЕ: Анимированные геометрические фигуры с плавными трансформациями и цветовыми переходами
 import time
 import random
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
-from  rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageDraw
 
 import math
@@ -160,7 +165,7 @@ motions = [
 
 def generate_frame():
     """Генерация одного кадра анимации"""
-    img = Image.new('RGB', (64, 64), 'white')
+    img = Image.new('RGB', (64, 64), 'black')
     draw = ImageDraw.Draw(img)
     
     for motion in motions:

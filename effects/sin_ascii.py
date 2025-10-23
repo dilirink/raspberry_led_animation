@@ -3,7 +3,13 @@
 # ОПИСАНИЕ: Анимированные текста
 import time
 import math
-from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageDraw, ImageFont
 
 # ==================== НАСТРОЙКИ ====================

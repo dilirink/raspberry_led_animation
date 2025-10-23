@@ -4,11 +4,12 @@
 Flask веб-сервер для управления LED эффектами
 """
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 import subprocess
 import signal
 import sys
 from pathlib import Path
+import yaml
 
 app = Flask(__name__)
 
@@ -17,6 +18,25 @@ current_effect_process = None
 current_effect_name = None
 
 EFFECTS_DIR = Path(__file__).parent / "effects"
+CONFIG_FILE = Path(__file__).parent / "config.yaml"
+IMAGES_DIR = Path(__file__).parent / "templates" / "images"
+
+
+def load_config():
+    """
+    Загружает конфигурацию эффектов из config.yaml
+    """
+    if not CONFIG_FILE.exists():
+        print(f"Предупреждение: Файл конфигурации {CONFIG_FILE} не найден")
+        return []
+
+    try:
+        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+            return config.get('effects', [])
+    except Exception as e:
+        print(f"Ошибка при загрузке конфигурации: {e}")
+        return []
 
 
 def get_effect_metadata(effect_file):
@@ -53,31 +73,39 @@ def get_effect_metadata(effect_file):
 
 def get_available_effects():
     """
-    Сканирует папку effects и возвращает список доступных эффектов.
+    Загружает список доступных эффектов из config.yaml.
+    Возвращает только те эффекты, файлы которых существуют.
     """
     effects = []
+    config_effects = load_config()
 
-    if not EFFECTS_DIR.exists():
-        return effects
+    for effect in config_effects:
+        effect_file = EFFECTS_DIR / f"{effect['file']}.py"
 
-    for effect_file in EFFECTS_DIR.glob("*.py"):
-        # Пропускаем файлы, начинающиеся с _
-        if effect_file.name.startswith('_'):
-            continue
+        # Проверяем, что файл эффекта существует
+        if effect_file.exists():
+            effects.append({
+                'filename': effect['file'],
+                'name': effect['name'],
+                'description': effect.get('description', ''),
+                'image': effect.get('image', '')
+            })
+        else:
+            print(f"Предупреждение: Файл эффекта {effect_file} не найден")
 
-        metadata = get_effect_metadata(effect_file)
-
-        # Показываем только эффекты с названием
-        if metadata['name']:
-            effects.append(metadata)
-
-    return sorted(effects, key=lambda x: x['name'])
+    return effects
 
 
 @app.route('/')
 def index():
     """Главная страница с интерфейсом управления"""
     return render_template('index.html')
+
+
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    """Обслуживание изображений эффектов"""
+    return send_from_directory(IMAGES_DIR, filename)
 
 
 @app.route('/api/effects', methods=['GET'])

@@ -1,132 +1,232 @@
 #!/usr/bin/env python
-# НАЗВАНИЕ: Волны
-# ОПИСАНИЕ: Плавные волнообразные линии на основе Perlin noise
-# https://openprocessing.org/sketch/2750462
 import time
-import math
-from  rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
-from PIL import Image, ImageDraw
-from opensimplex import OpenSimplex
-import numpy as np
 import random
+import platform
 
-import noise  # pip install noise
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+from PIL import Image, ImageDraw, ImageFilter
+try:
+    from noise import pnoise3
+except ImportError:
+    print("Installing noise library...")
+    import subprocess
+    subprocess.check_call(["pip", "install", "noise", "--break-system-packages"])
+    from noise import pnoise3
 
-# Конфигурация для матрицы
+# ============================================
+# НАСТРОЙКИ
+# ============================================
+# Настройки матрицы
+MATRIX_WIDTH = 64
+MATRIX_HEIGHT = 64
+MATRIX_CHAIN_LENGTH = 1
+MATRIX_PARALLEL = 1
+MATRIX_HARDWARE_MAPPING = 'regular'
+
+# Настройки анимации
+OBJECTS_NUM = 25  # Количество линий
+FRAME_RATE = 60  # FPS
+FRAME_DELAY = 1.0 / FRAME_RATE
+
+# Палитра цветов
+PALETTE = [
+    "#FF00D8",
+    "#FFB201",
+    "#98FF00",
+    "#00FFC4",
+    "#0082FE",
+    "#B733FF",
+]
+
+# Фон
+BACKGROUND_COLOR = "#000000"
+
+# Параметры линий
+RANGE_X_OPTIONS = [5, 5, 5, 5, 5, 5, 10, 10, 10, 20, 20, 30, 30, 30, 30, 40, 50]
+LINE_WIDTH_MIN = 1  # Увеличено для объема
+LINE_WIDTH_MAX = 3  # Увеличено для объема
+BASE_ALPHA = 80  # Базовая прозрачность (ниже = прозрачнее)
+ALPHA_SHORT_LINES = 50  # Прозрачность для коротких линий
+GLOW_LAYERS = 3  # Количество слоев свечения для объема
+OUT_PROBABILITY = 10
+
+# ============================================
+# ИНИЦИАЛИЗАЦИЯ МАТРИЦЫ
+# ============================================
 options = RGBMatrixOptions()
-options.rows = 64
-options.cols = 64
-options.chain_length = 1
-options.parallel = 1
-# options.hardware_mapping = 'regular'
-options.hardware_mapping = 'adafruit-hat'
+options.rows = MATRIX_HEIGHT
+options.cols = MATRIX_WIDTH
+options.chain_length = MATRIX_CHAIN_LENGTH
+options.parallel = MATRIX_PARALLEL
+options.hardware_mapping = MATRIX_HARDWARE_MAPPING
 
 matrix = RGBMatrix(options=options)
 
-# Параметры анимации
-WIDTH = 64
-HEIGHT = 64
-PALETTE = [
-    (255, 0, 216),   # FF00D8
-    (255, 178, 1),   # FFB201
-    (152, 255, 0),   # 98FF00
-    (0, 255, 196),   # 00FFC4
-    (0, 130, 254),   # 0082FE
-    (183, 51, 255),  # B733FF
-]
+# ============================================
+# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+# ============================================
+def hex_to_rgb(hex_color):
+    """Конвертирует HEX цвет в RGB"""
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
+def map_value(value, in_min, in_max, out_min, out_max):
+    """Аналог map() из p5.js"""
+    return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+# ============================================
+# КЛАСС ОБЪЕКТА (ЛИНИИ)
+# ============================================
 class Obj:
     def __init__(self, index):
         self.index = index
-        self.start_x = random.uniform(0, WIDTH)
+        self.start_x = random.uniform(0, MATRIX_WIDTH)
         self.frame_count = 0
         self.init()
-        
+        self.goal_x = self.start_x + self.range_x
+    
     def init(self):
-        range_options = [5, 5, 5, 5, 5, 5, 10, 10, 10, 20, 20, 
-                        100, 100, 100, 100, 200, 300]
-        self.range_x = random.choice(range_options)
+        """Инициализация параметров линии"""
+        self.range_x = random.choice(RANGE_X_OPTIONS)
+        self.step = map_value(self.range_x, 5, 50, 2, 10)
+        self.str_weight = random.uniform(LINE_WIDTH_MIN, LINE_WIDTH_MAX)
+        self.color = hex_to_rgb(random.choice(PALETTE))
         
-        # Масштабирование шага от 5 до 30 в зависимости от range_x
-        self.step = self.map_value(self.range_x, 5, 200, 0.5, 3)
-        self.str_weight = random.uniform(1, 3)
-        self.color = random.choice(PALETTE)
-        
-        # Альфа канал для маленьких диапазонов
-        if self.range_x < 100:
-            self.alpha = 150
+        # Альфа канал для коротких линий - больше прозрачности
+        if self.range_x < 30:
+            self.alpha = ALPHA_SHORT_LINES
         else:
-            self.alpha = 255
+            self.alpha = BASE_ALPHA
             
-        self.is_out = random.random() < 0.1
-        
-    def map_value(self, value, in_min, in_max, out_min, out_max):
-        return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+        self.is_out = random.random() * 100 < OUT_PROBABILITY
     
     def move(self):
+        """Движение линии"""
         self.start_x += self.step
-        if self.start_x > WIDTH + self.range_x:
+        self.goal_x = self.start_x + self.range_x
+        
+        # Если линия ушла за границу, переинициализируем
+        if self.start_x > MATRIX_WIDTH:
             self.init()
             self.start_x = -self.range_x
-            
-    def display(self, draw, frame_count):
+            self.goal_x = self.start_x + self.range_x
+    
+    def get_points(self, frame_count):
+        """Генерирует точки для линии с использованием Perlin noise"""
         points = []
         x = self.start_x
-        goal_x = self.start_x + self.range_x
-        
-        while x <= goal_x and x <= WIDTH:
-            if x >= 0:
-                # Генерация Perlin noise
-                noise_factor = 0.005 if not self.is_out else 0.025
-                n = noise.pnoise3(
-                    x * 0.001,
-                    self.index * noise_factor,
-                    frame_count * 0.003
+        while x <= self.goal_x:
+            if 0 <= x < MATRIX_WIDTH:
+                # Perlin noise для волнообразного движения
+                noise_scale = 0.025 if self.is_out else 0.005
+                noise_val = pnoise3(
+                    x * 0.05,
+                    self.index * noise_scale,
+                    frame_count * 0.01,
+                    octaves=2
                 )
                 
-                # Масштабирование noise от -HEIGHT*0.25 до HEIGHT*1.25
-                y = self.map_value(n, -1, 1, -HEIGHT * 0.25, HEIGHT * 1.25)
+                # Нормализуем noise от [-1, 1] к [0, 1]
+                noise_val = (noise_val + 1) / 2
                 
-                if 0 <= y < HEIGHT:
-                    points.append((int(x), int(y)))
+                # Маппим на высоту экрана
+                y = map_value(
+                    noise_val,
+                    0, 1,
+                    -MATRIX_HEIGHT * 0.25,
+                    MATRIX_HEIGHT * 1.25
+                )
+                
+                points.append((x, y))
             x += 1
         
-        # Рисование линии
+        return points
+
+# ============================================
+# ГЕНЕРАЦИЯ КАДРА
+# ============================================
+def generate_frame(objects, frame_count):
+    """Генерирует один кадр анимации с объемными линиями"""
+    # Создаем изображение с альфа-каналом
+    img = Image.new('RGBA', (MATRIX_WIDTH, MATRIX_HEIGHT), (0, 0, 0, 0))
+    
+    # Рисуем каждый объект со слоями для объема
+    for obj in objects:
+        points = obj.get_points(frame_count)
+        
         if len(points) > 1:
-            # Применение альфа канала к цвету
-            color_with_alpha = tuple(list(self.color) + [self.alpha])
-            draw.line(points, fill=self.color, width=int(self.str_weight))
-
-def generate_frame(objs, frame_count):
-    # Создаём чёрный фон
-    img = Image.new('RGB', (WIDTH, HEIGHT), color=(17, 17, 17))
-    draw = ImageDraw.Draw(img, 'RGBA')
+            # Создаем временный слой для этой линии
+            layer = Image.new('RGBA', (MATRIX_WIDTH, MATRIX_HEIGHT), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(layer)
+            
+            # Рисуем несколько слоев с разной толщиной и прозрачностью для объема
+            for glow_layer in range(GLOW_LAYERS, 0, -1):
+                # Вычисляем параметры для каждого слоя
+                layer_width = int(obj.str_weight * (1 + glow_layer * 0.5))
+                layer_alpha = int(obj.alpha * (0.3 + 0.7 / glow_layer))
+                
+                color = obj.color + (layer_alpha,)
+                
+                # Рисуем линию по точкам
+                for i in range(len(points) - 1):
+                    x1, y1 = points[i]
+                    x2, y2 = points[i + 1]
+                    draw.line([(x1, y1), (x2, y2)], fill=color, width=layer_width)
+            
+            # Добавляем легкое размытие для мягкости
+            layer = layer.filter(ImageFilter.GaussianBlur(radius=0.5))
+            
+            # Накладываем слой на основное изображение
+            img = Image.alpha_composite(img, layer)
     
-    # Обновляем и рисуем все объекты
-    for obj in objs:
-        obj.move()
-        obj.display(draw, frame_count)
+    # Создаем финальное изображение с фоном
+    background = Image.new('RGB', (MATRIX_WIDTH, MATRIX_HEIGHT), hex_to_rgb(BACKGROUND_COLOR))
     
-    return img
+    # Накладываем все линии на фон
+    background.paste(img, (0, 0), img)
+    
+    return background
 
-# Инициализация объектов
-objs_num = 30  # Уменьшено для производительности на LED панели
-objs = []
-for i in range(objs_num):
-    objs.append(Obj(i))
-
-# Анимация
-try:
-    print("Press CTRL-C to stop.")
+# ============================================
+# ГЛАВНЫЙ ЦИКЛ
+# ============================================
+def main():
+    # Инициализация объектов
+    objs = []
+    for i in range(OBJECTS_NUM):
+        objs.append(Obj(i))
+    
     frame_count = 0
     
-    while True:
-        frame = generate_frame(objs, frame_count)
-        matrix.SetImage(frame.convert("RGB"))
-        frame_count += 1
-        time.sleep(0.016)  # ~60 FPS
+    try:
+        print(f"Starting animation on {MATRIX_WIDTH}x{MATRIX_HEIGHT} LED matrix")
+        print("Press CTRL-C to stop.")
         
-except KeyboardInterrupt:
-    print("\nExiting...")
-    matrix.Clear()
+        while True:
+            # Двигаем все объекты
+            for obj in objs:
+                obj.move()
+            
+            # Генерируем кадр
+            frame = generate_frame(objs, frame_count)
+            
+            # Отображаем на матрице
+            matrix.SetImage(frame)
+            
+            # Обновляем счетчик кадров
+            frame_count += 1
+            
+            # Задержка для соблюдения FPS
+            time.sleep(FRAME_DELAY)
+            
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        matrix.Clear()
+
+if __name__ == "__main__":
+    main()
+

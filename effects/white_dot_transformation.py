@@ -3,8 +3,13 @@
 # ОПИСАНИЕ: Морфинг белых точек между различными геометрическими паттернами
 import random
 import numpy as np
-from  rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
-# from  RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
+import platform
+
+if platform.system() == "Windows":
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+    graphics = None  # если нужно
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 import time
 
 # Настройки матрицы
