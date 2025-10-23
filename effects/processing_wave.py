@@ -25,7 +25,7 @@ MATRIX_WIDTH = 64
 MATRIX_HEIGHT = 64
 MATRIX_CHAIN_LENGTH = 1
 MATRIX_PARALLEL = 1
-MATRIX_HARDWARE_MAPPING = 'regular'
+MATRIX_HARDWARE_MAPPING = 'adafruit-hat'
 
 # Настройки анимации
 OBJECTS_NUM = 25  # Количество линий

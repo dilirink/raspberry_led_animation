@@ -18,7 +18,7 @@ MATRIX_ROWS = 64
 MATRIX_COLS = 64
 MATRIX_CHAIN_LENGTH = 1
 MATRIX_PARALLEL = 1
-MATRIX_HARDWARE_MAPPING = 'regular'
+MATRIX_HARDWARE_MAPPING = 'adafruit-hat'
 
 # Настройки анимации
 TEXT_STRING = "dilirink_ksenia"
