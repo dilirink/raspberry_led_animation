@@ -95,3 +95,8 @@ effects:
     name: Трансформация точек
     description: Морфинг белых точек между различными геометрическими паттернами
     image: dot_transformation.png
+
+  - file: spiral
+    name: спираль
+    description: пиксельная спираль
+    image: spiral.png
