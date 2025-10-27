@@ -15,7 +15,7 @@ MATRIX_ROWS = 64
 MATRIX_COLS = 64
 CHAIN_LENGTH = 1
 PARALLEL = 1
-HARDWARE_MAPPING = 'regular'
+HARDWARE_MAPPING  = 'adafruit-hat'
 
 # Параметры анимации
 ANIMATION_SPEED = 0.05  # Задержка между кадрами (секунды)
