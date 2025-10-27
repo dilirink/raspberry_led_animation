@@ -106,10 +106,12 @@ def convert_shape(shape_str):
     nums = [(ord(ch) - 32) % GRID_SIZE for ch in shape_str]
     return [(nums[i], nums[i+1]) for i in range(0, len(nums), 2)]
 
+
 shapes = [convert_shape(s) for s in shapes_data]
 shape_order = list(range(len(shapes)))
 random.shuffle(shape_order)
 
+# Состояние анимации
 current_index = 0
 current_points = np.array(shapes[shape_order[current_index]], dtype=float)
 target_points = np.array(shapes[shape_order[current_index]], dtype=int)
@@ -118,6 +120,11 @@ transition_speed = 1
 is_waiting = False
 waiting_start = 0
 
+# Для каскадной анимации
+active_points = 0  # Количество точек, которые начали движение
+points_activation_speed = 2  # Сколько точек активируется за кадр
+frame_counter = 0
+
 try:
     while True:
         # Очистка буфера
@@ -125,18 +132,30 @@ try:
 
         # Логика анимации
         if not is_waiting:
-            diffs = target_points - current_points
-            steps = np.sign(diffs) * np.minimum(np.abs(diffs), transition_speed)
-            current_points += steps
+            # Постепенно активируем больше точек
+            if active_points < len(current_points):
+                frame_counter += 1
+                if frame_counter % 1 == 0:  # Каждый кадр
+                    active_points = min(active_points + points_activation_speed, len(current_points))
+            
+            # Перемещаем только активные точки
+            for i in range(active_points):
+                diff = target_points[i] - current_points[i]
+                step = np.sign(diff) * np.minimum(np.abs(diff), transition_speed)
+                current_points[i] += step
 
+            # Проверяем, все ли точки достигли цели
             if np.all(current_points == target_points):
                 waiting_start = time.time()
                 is_waiting = True
         else:
+            # Ждем перед переходом к следующей фигуре
             if time.time() - waiting_start >= 2:
                 current_index = (current_index + 1) % len(shapes)
                 target_points = np.array(shapes[shape_order[current_index]], dtype=int)
                 is_waiting = False
+                active_points = 0  # Сбрасываем счетчик активных точек
+                frame_counter = 0
 
         # Отрисовка в буфер
         for x, y in current_points.astype(int):
@@ -150,3 +169,4 @@ try:
 
 except KeyboardInterrupt:
     matrix.Clear()
+
