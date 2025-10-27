@@ -100,3 +100,13 @@ effects:
     name: спираль
     description: пиксельная спираль
     image: spiral.png
+
+  - file: sorting_algoritm
+    name: сортировка
+    description: несколько алгоритмов сортировки
+    image: sorting_algoritm.png
+
+  - file: line
+    name: одна линия
+    description: несколько  эффектов
+    image: line.png
