@@ -114,3 +114,7 @@ effects:
     name: просто космос
     description: полет к звездам
     image: space.png
+  - file: fire
+    name: огонь
+    description: огонь
+    image: fire.png
