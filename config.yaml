@@ -110,3 +110,7 @@ effects:
     name: одна линия
     description: несколько  эффектов
     image: line.png
+  - file: space
+    name: просто космос
+    description: полет к звездам
+    image: space.png
