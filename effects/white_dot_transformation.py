@@ -98,8 +98,11 @@ shapes_data =  [
   "&&9&F&Y&''8'G'X'((7(H(W())6)I)V))666I6V6(777H7W7'888G8X8&999F9Y9&F9FFFYF'G8GGGXG(H7HHHWH)I6IIIVI)V6VIVVV(W7WHWWW'X8XGXXX&Y9YFYYY",
   ' C$C(C,C0C4C8C<C"E&E*E.E2E6E:E$G(G,G0G4G8G<G&I*I.I2I6I:I(K,K0K4K8K<K*M.M2M6M:M,O0O4O8O<O.Q2Q6Q:Q0S4S8S<S2U6U:U4W8W<W6Y:Y8[<[:]<_',
   '  " $ & ( * , . !!#!%!\'!)!+!-! """$"&"("*","!###%#\'#)#+# $"$$$&$($*$!%#%%%\'%)% &"&$&&&(&!\'#\'%\'\'\' ("($(&(!)#)%) *"*$*!+#+ ,",!- .',
-  "QQRRQSSSRTTTQUSUUURVTVVVQWSWUWWWRXTXVXXXQYSYUYWYYYRZTZVZXZZZQ[S[U[W[Y[[[R\\T\\V\\X\\Z\\\\\\Q]S]U]W]Y][]]]R^T^V^X^Z^\\^^^Q_S_U_W_Y_[_]___",
+    "QQRRQSSSRTTTQUSUUURVTVVVQWSWUWWWRXTXVXXXQYSYUYWYYYRZTZVZXZZZQ[S[U[W[Y[[[R\\T\\V\\X\\Z\\\\\\Q]S]U]W]Y][]]]R^T^V^X^Z^\\^^^Q_S_U_W_Y_[_]___",
+    "55657585G5H5I5J556J657J7588898:8E8F8G8J889G98:G:;;<;C;D;;<D<>>A>>AAA;CDC;D<DCDDD8EGE8FGF5G8G9G:GEGFGGGJG5HJH5IJI5J6J7J8JGJHJIJJJ",
+    "! \" ] ^  !_! \"\"\"]\"_\"##\\#((W(..Q.00O066I6;;D;<<><A<C<>=A=<>=>B>C><A=ABACA>BAB<C>CACCC;DDD6III0OOO.QQQ(WWW#\\\\\\ ]\"]]]_] ^_^!_\"_]_^_",
 
+   "7797:7;7=7B7D7E7F7H779=9B9H97:=:B:H:7;=;B;H;7=9=:=;===B=D=E=F=H=7B9B:B;B=BBBDBEBFBHB7D=DBDHD7E=EBEHE7F=FBFHF7H9H:H;H=HBHDHEHFHHH",
 ]
 def convert_shape(shape_str):
     """Нормализация координат в диапазон 0-63"""

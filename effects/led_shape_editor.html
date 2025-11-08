@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LED Matrix Shape Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .info-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 5px;
+        }
+        
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: #000;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(64, 8px);
+            grid-template-rows: repeat(64, 8px);
+            gap: 1px;
+            background: #111;
+            padding: 5px;
+            border: 2px solid #333;
+            cursor: crosshair;
+        }
+        
+        .cell {
+            width: 8px;
+            height: 8px;
+            background: #1a1a1a;
+            transition: background 0.1s;
+        }
+        
+        .cell.guide-diagonal {
+            background: #252535;
+        }
+        
+        .cell.quadrant-border {
+            background: #2a2a3a;
+        }
+        
+        .mirror-mode .cell.quadrant-border {
+            background: #3a3a5a;
+        }
+        
+        .cell.active {
+            background: #fff;
+            box-shadow: 0 0 3px #fff;
+        }
+        
+        .cell.active.guide-diagonal,
+        .cell.active.quadrant-border {
+            background: #fff;
+        }
+        
+        .guides-hidden .cell.guide-diagonal {
+            background: #1a1a1a;
+        }
+        
+        .guides-hidden .cell.quadrant-border {
+            background: #1a1a1a;
+        }
+        
+        /* ВАЖНО: Показываем направляющие всегда при активных режимах зеркалирования */
+        .mirror-mode .cell.guide-diagonal,
+        .mirror-horizontal .cell.guide-diagonal,
+        .guides-hidden.mirror-mode .cell.guide-diagonal,
+        .guides-hidden.mirror-horizontal .cell.guide-diagonal {
+            background: #252535;
+        }
+        
+        .mirror-mode .cell.quadrant-border,
+        .mirror-horizontal .cell.quadrant-border,
+        .guides-hidden.mirror-mode .cell.quadrant-border,
+        .guides-hidden.mirror-horizontal .cell.quadrant-border {
+            background: #3a3a5a;
+        }
+        
+        /* Подсветка при зеркалировании */
+        .mirror-mode .cell:not(.active):not(.top-left-quadrant):not(.guide-diagonal):not(.quadrant-border) {
+            opacity: 0.4;
+        }
+        
+        .mirror-mode .cell.top-left-quadrant:not(.guide-diagonal):not(.quadrant-border):not(.active) {
+            background: #222232;
+        }
+        
+        /* Направляющие всегда видны на 100% */
+        .mirror-mode .cell.guide-diagonal,
+        .mirror-mode .cell.quadrant-border,
+        .mirror-horizontal .cell.guide-diagonal,
+        .mirror-horizontal .cell.quadrant-border {
+            opacity: 1 !important;
+        }
+        
+        /* Горизонтальное зеркалирование */
+        .mirror-horizontal .cell.left-half:not(.active):not(.guide-diagonal):not(.quadrant-border) {
+            background: #222232;
+        }
+        
+        .mirror-horizontal .cell:not(.left-half):not(.active):not(.guide-diagonal):not(.quadrant-border) {
+            opacity: 0.5;
+        }
+        
+        /* Активные точки всегда полностью видны */
+        .mirror-mode .cell.active,
+        .mirror-horizontal .cell.active {
+            opacity: 1 !important;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .output-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .output-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+            background: white;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .preset-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 15px;
+            background: #e9ecef;
+            color: #495057;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .tool-mode {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            background: #e9ecef;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 LED Matrix Shape Editor</h1>
+        
+        <div class="info-panel">
+            <div class="info-item">
+                <div class="info-label">Размещено точек</div>
+                <div class="info-value" id="pointCount">0</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Осталось точек</div>
+                <div class="info-value" id="remainingPoints">64</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Размер матрицы</div>
+                <div class="info-value">64×64</div>
+            </div>
+        </div>
+        
+        <div class="tool-mode">
+            <button class="mode-btn" id="toggleGuides">📏 Направляющие</button>
+            <button class="mode-btn" id="mirrorHorizontal">↔️ Лево-право</button>
+            <button class="mode-btn" id="mirrorQuadrant">✨ 4 квадранта</button>
+            <div style="flex: 1; text-align: center; padding: 10px; color: #666; font-size: 14px;">
+                <strong>ЛКМ</strong> - рисовать | <strong>ПКМ</strong> - удалять
+                <div id="mirrorHintHorizontal" style="display: none; color: #667eea; font-weight: bold; margin-top: 5px;">
+                    ↔️ Зеркалирование слева направо
+                </div>
+                <div id="mirrorHintQuadrant" style="display: none; color: #667eea; font-weight: bold; margin-top: 5px;">
+                    ✨ Рисуйте в левом верхнем квадранте (макс. 64 точки)
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-wrapper">
+            <div id="grid"></div>
+        </div>
+        
+        <div class="preset-buttons">
+            <button class="preset-btn" onclick="drawCircle()">⭕ Круг</button>
+            <button class="preset-btn" onclick="drawSquare()">⬜ Квадрат</button>
+            <button class="preset-btn" onclick="drawCross()">➕ Крест</button>
+            <button class="preset-btn" onclick="drawDiagonal()">📐 Диагонали</button>
+            <button class="preset-btn" onclick="drawSpiral()">🌀 Спираль</button>
+            <button class="preset-btn" onclick="drawRandom()">🎲 Случайные точки</button>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-primary" onclick="generateString()">📋 Сгенерировать строку</button>
+            <button class="btn-secondary" onclick="copyToClipboard()">📄 Копировать</button>
+            <button class="btn-danger" onclick="clearGrid()">🗑️ Очистить всё</button>
+        </div>
+        
+        <div class="output-area">
+            <div class="output-label">Сгенерированная строка для вставки в скрипт:</div>
+            <textarea id="output" readonly placeholder="Нарисуйте фигуру и нажмите 'Сгенерировать строку'"></textarea>
+            <!-- Новый блок вывода координат -->
+<div id="coordString" style="
+    margin-top: 10px;
+    background: #f1f3f5;
+    border-radius: 8px;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    color: #333;
+"></div>
+            <div class="success-message" id="successMsg">✓ Скопировано в буфер обмена!</div>
+        </div>
+    </div>
+
+    <script>
+        const GRID_SIZE = 64;
+        const MAX_POINTS = 64; // Максимум точек для красивой анимации
+        let points = new Set();
+        let isDrawing = false;
+        let mirrorMode = 'none'; // Режим зеркалирования: 'none', 'horizontal', 'quadrant'
+        
+        // Создание сетки
+        const grid = document.getElementById('grid');
+        const cells = [];
+        
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                
+                // Добавляем подсветку для диагоналей
+                if (x === y || x === (GRID_SIZE - 1 - y)) {
+                    cell.classList.add('guide-diagonal');
+                }
+                
+                // Добавляем подсветку границ квадрантов (центральные линии)
+                if (x === 31 || x === 32 || y === 31 || y === 32) {
+                    cell.classList.add('quadrant-border');
+                }
+                
+                // Помечаем левый верхний квадрант для режима зеркалирования
+                if (x <= 31 && y <= 31) {
+                    cell.classList.add('top-left-quadrant');
+                }
+                
+                // Помечаем левую половину для горизонтального зеркалирования
+                if (x <= 31) {
+                    cell.classList.add('left-half');
+                }
+                
+                cell.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    isDrawing = true;
+                    if (e.button === 0) { // Левая кнопка - рисовать
+                        addPoint(x, y);
+                    } else if (e.button === 2) { // Правая кнопка - удалять
+                        removePoint(x, y);
+                    }
+                });
+                
+                cell.addEventListener('mouseenter', (e) => {
+                    if (isDrawing) {
+                        if (e.buttons === 1) { // Левая кнопка зажата
+                            addPoint(x, y);
+                        } else if (e.buttons === 2) { // Правая кнопка зажата
+                            removePoint(x, y);
+                        }
+                    }
+                });
+                
+                cell.addEventListener('contextmenu', (e) => {
+                    e.preventDefault(); // Отключаем контекстное меню
+                });
+                
+                cell.addEventListener('mouseleave', () => {
+                    // Можно добавить эффект
+                });
+                
+                grid.appendChild(cell);
+                cells.push(cell);
+            }
+        }
+        
+        document.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+        
+        // Отключаем контекстное меню на всей сетке
+        grid.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+        
+        // Переключение направляющих
+        let guidesVisible = true;
+        document.getElementById('toggleGuides').addEventListener('click', function() {
+            guidesVisible = !guidesVisible;
+            if (guidesVisible) {
+                grid.classList.remove('guides-hidden');
+                this.classList.add('active');
+            } else {
+                grid.classList.add('guides-hidden');
+                this.classList.remove('active');
+            }
+        });
+        document.getElementById('toggleGuides').classList.add('active');
+        
+        // Горизонтальное зеркалирование (лево-право)
+        document.getElementById('mirrorHorizontal').addEventListener('click', function() {
+            const mirrorHintH = document.getElementById('mirrorHintHorizontal');
+            const mirrorHintQ = document.getElementById('mirrorHintQuadrant');
+            const quadrantBtn = document.getElementById('mirrorQuadrant');
+            
+            if (mirrorMode === 'horizontal') {
+                // Выключаем
+                mirrorMode = 'none';
+                this.classList.remove('active');
+                grid.classList.remove('mirror-horizontal');
+                mirrorHintH.style.display = 'none';
+            } else {
+                // Включаем горизонтальное
+                mirrorMode = 'horizontal';
+                this.classList.add('active');
+                quadrantBtn.classList.remove('active');
+                grid.classList.remove('mirror-mode');
+                grid.classList.add('mirror-horizontal');
+                mirrorHintH.style.display = 'block';
+                mirrorHintQ.style.display = 'none';
+            }
+        });
+        
+        // Зеркалирование по 4 квадрантам
+        document.getElementById('mirrorQuadrant').addEventListener('click', function() {
+            const mirrorHintH = document.getElementById('mirrorHintHorizontal');
+            const mirrorHintQ = document.getElementById('mirrorHintQuadrant');
+            const horizontalBtn = document.getElementById('mirrorHorizontal');
+            
+            if (mirrorMode === 'quadrant') {
+                // Выключаем
+                mirrorMode = 'none';
+                this.classList.remove('active');
+                grid.classList.remove('mirror-mode');
+                mirrorHintQ.style.display = 'none';
+            } else {
+                // Включаем квадрантное
+                mirrorMode = 'quadrant';
+                this.classList.add('active');
+                horizontalBtn.classList.remove('active');
+                grid.classList.remove('mirror-horizontal');
+                grid.classList.add('mirror-mode');
+                mirrorHintH.style.display = 'none';
+                mirrorHintQ.style.display = 'block';
+            }
+        });
+        
+        function addPoint(x, y) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
+            
+            const key = `${x},${y}`;
+            let pointsAdded = false;
+            
+            // Зеркалирование по 4 квадрантам
+            if (mirrorMode === 'quadrant') {
+                // Подготавливаем все 4 точки
+                const mirrorX = 63 - x;
+                const mirrorY = 63 - y;
+                
+                const pointsToAdd = [
+                    {x: x, y: y, key: key},
+                    {x: mirrorX, y: y, key: `${mirrorX},${y}`},
+                    {x: x, y: mirrorY, key: `${x},${mirrorY}`},
+                    {x: mirrorX, y: mirrorY, key: `${mirrorX},${mirrorY}`}
+                ];
+                
+                // Фильтруем только те точки, которых еще нет
+                const newPoints = pointsToAdd.filter(p => !points.has(p.key));
+                
+                // Проверяем, достаточно ли места для всех новых точек
+                if (points.size + newPoints.length <= MAX_POINTS) {
+                    // Добавляем все новые точки
+                    newPoints.forEach(p => {
+                        points.add(p.key);
+                        cells[p.y * GRID_SIZE + p.x].classList.add('active');
+                    });
+                    pointsAdded = newPoints.length > 0;
+                }
+            }
+            // Горизонтальное зеркалирование (лево-право)
+            else if (mirrorMode === 'horizontal') {
+                const mirrorX = 63 - x;
+                
+                const pointsToAdd = [
+                    {x: x, y: y, key: key},
+                    {x: mirrorX, y: y, key: `${mirrorX},${y}`}
+                ];
+                
+                const newPoints = pointsToAdd.filter(p => !points.has(p.key));
+                
+                if (points.size + newPoints.length <= MAX_POINTS) {
+                    newPoints.forEach(p => {
+                        points.add(p.key);
+                        cells[p.y * GRID_SIZE + p.x].classList.add('active');
+                    });
+                    pointsAdded = newPoints.length > 0;
+                }
+            }
+            // Обычный режим без зеркалирования
+            else {
+                if (!points.has(key) && points.size < MAX_POINTS) {
+                    points.add(key);
+                    cells[y * GRID_SIZE + x].classList.add('active');
+                    pointsAdded = true;
+                }
+            }
+            
+            if (pointsAdded) {
+                updateCounters();
+            }
+        }
+        
+        function removePoint(x, y) {
+            if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
+            
+            const key = `${x},${y}`;
+            let pointsRemoved = false;
+            
+            // Зеркалирование по 4 квадрантам
+            if (mirrorMode === 'quadrant') {
+                const mirrorX = 63 - x;
+                const mirrorY = 63 - y;
+                
+                const pointsToRemove = [
+                    {x: x, y: y, key: key},
+                    {x: mirrorX, y: y, key: `${mirrorX},${y}`},
+                    {x: x, y: mirrorY, key: `${x},${mirrorY}`},
+                    {x: mirrorX, y: mirrorY, key: `${mirrorX},${mirrorY}`}
+                ];
+                
+                pointsToRemove.forEach(p => {
+                    if (points.has(p.key)) {
+                        points.delete(p.key);
+                        cells[p.y * GRID_SIZE + p.x].classList.remove('active');
+                        pointsRemoved = true;
+                    }
+                });
+            }
+            // Горизонтальное зеркалирование (лево-право)
+            else if (mirrorMode === 'horizontal') {
+                const mirrorX = 63 - x;
+                
+                const pointsToRemove = [
+                    {x: x, y: y, key: key},
+                    {x: mirrorX, y: y, key: `${mirrorX},${y}`}
+                ];
+                
+                pointsToRemove.forEach(p => {
+                    if (points.has(p.key)) {
+                        points.delete(p.key);
+                        cells[p.y * GRID_SIZE + p.x].classList.remove('active');
+                        pointsRemoved = true;
+                    }
+                });
+            }
+            // Обычный режим без зеркалирования
+            else {
+                if (points.has(key)) {
+                    points.delete(key);
+                    cells[y * GRID_SIZE + x].classList.remove('active');
+                    pointsRemoved = true;
+                }
+            }
+            
+            if (pointsRemoved) {
+                updateCounters();
+            }
+        }
+        
+        function updateCounters() {
+            document.getElementById('pointCount').textContent = points.size;
+            document.getElementById('remainingPoints').textContent = MAX_POINTS - points.size;
+        }
+        
+function generateString() {
+    if (points.size === 0) {
+        alert('Сначала нарисуйте фигуру!');
+        return;
+    }
+
+    // Конвертируем точки в массив координат
+    const pointsArray = Array.from(points).map(key => {
+        const [x, y] = key.split(',').map(Number);
+        return [x, y];
+    });
+
+    // Сортировка для аккуратного вида
+    pointsArray.sort((a, b) => {
+        if (a[1] !== b[1]) return a[1] - b[1];
+        return a[0] - b[0];
+    });
+
+    // Генерация строки кодировки (x+32, y+32)
+    let result = '';
+    for (const [x, y] of pointsArray) {
+        result += String.fromCharCode(x + 32) + String.fromCharCode(y + 32);
+    }
+
+    // Экранируем спецсимволы для вставки в Python строку
+    result = result.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+    // Вывод в textarea
+    document.getElementById('output').value = `"${result}"`;
+
+    // Отображаем координаты под строкой
+    const coordText = pointsArray.map(([x, y]) => `(${x}, ${y})`).join(', ');
+    document.getElementById('coordString').textContent = `Координаты: [ ${coordText} ]`;
+}
+        
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            if (output.value === '') {
+                alert('Сначала сгенерируйте строку!');
+                return;
+            }
+            
+            output.select();
+            document.execCommand('copy');
+            
+            const msg = document.getElementById('successMsg');
+            msg.style.display = 'block';
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 2000);
+        }
+        
+        function clearGrid() {
+            points.clear();
+            cells.forEach(cell => cell.classList.remove('active'));
+            updateCounters();
+            document.getElementById('output').value = '';
+        }
+        
+        // Пресеты
+        function drawCircle() {
+            clearGrid();
+            const centerX = 31.5;
+            const centerY = 31.5;
+            const radius = 20;
+            
+            for (let y = 0; y < GRID_SIZE && points.size < MAX_POINTS; y++) {
+                for (let x = 0; x < GRID_SIZE && points.size < MAX_POINTS; x++) {
+                    const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+                    if (Math.abs(dist - radius) < 1.5) {
+                        const key = `${x},${y}`;
+                        points.add(key);
+                        cells[y * GRID_SIZE + x].classList.add('active');
+                    }
+                }
+            }
+            updateCounters();
+        }
+        
+        function drawSquare() {
+            clearGrid();
+            const size = 40;
+            const offset = (GRID_SIZE - size) / 2;
+            
+            for (let i = 0; i < size && points.size < MAX_POINTS; i++) {
+                // Верхняя сторона
+                addPoint(offset + i, offset);
+                // Нижняя сторона
+                addPoint(offset + i, offset + size - 1);
+                // Левая сторона
+                addPoint(offset, offset + i);
+                // Правая сторона
+                addPoint(offset + size - 1, offset + i);
+            }
+            updateCounters();
+        }
+        
+        function drawCross() {
+            clearGrid();
+            for (let i = 8; i < 56 && points.size < MAX_POINTS; i++) {
+                addPoint(32, i); // Вертикаль
+                addPoint(i, 32); // Горизонталь
+            }
+            updateCounters();
+        }
+        
+        function drawDiagonal() {
+            clearGrid();
+            for (let i = 0; i < GRID_SIZE && points.size < MAX_POINTS; i++) {
+                addPoint(i, i); // Главная диагональ
+                addPoint(i, GRID_SIZE - 1 - i); // Побочная диагональ
+            }
+            updateCounters();
+        }
+        
+        function drawSpiral() {
+            clearGrid();
+            const centerX = 32;
+            const centerY = 32;
+            let radius = 2;
+            let angle = 0;
+            
+            while (points.size < MAX_POINTS && radius < 30) {
+                const x = Math.round(centerX + radius * Math.cos(angle));
+                const y = Math.round(centerY + radius * Math.sin(angle));
+                
+                if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+                    addPoint(x, y);
+                }
+                
+                angle += 0.3;
+                radius += 0.1;
+            }
+            updateCounters();
+        }
+        
+        function drawRandom() {
+            clearGrid();
+            const count = Math.min(MAX_POINTS, 50);
+            
+            while (points.size < count) {
+                const x = Math.floor(Math.random() * GRID_SIZE);
+                const y = Math.floor(Math.random() * GRID_SIZE);
+                addPoint(x, y);
+            }
+            updateCounters();
+        }
+        
+        // Инициализация
+        updateCounters();
+    </script>
+</body>
+</html>
